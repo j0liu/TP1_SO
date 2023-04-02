@@ -1,13 +1,15 @@
+MASTER_DEPS=m2sADT.c helpers.c
+
 all: master slave view
 
 master:
-	gcc -Wall master.c helpers.c -o md5 -std=c99
+	gcc -Wall master.c $(MASTER_DEPS) -o md5 -std=gnu11 -fsanitize=address -pedantic
 
 slave:
-	gcc -Wall slave.c helpers.c -o slave -std=c99
+	gcc -Wall slave.c -o slave -std=gnu11 -fsanitize=address -pedantic
 
 view:
-	gcc -Wall view.c helpers.c -o view -std=c99
+	gcc -Wall view.c -o view -std=gnu11 -fsanitize=address -pedantic
 
 clean:
 	rm -f md5 slave view

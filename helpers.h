@@ -1,4 +1,4 @@
 #ifndef HELPERS_H
 #define HELPERS_H
-  int file_exists(char *filename);
-#endif
+  int fileExists(char *filename);
+#endif // HELPERS_H
