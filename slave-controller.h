@@ -6,7 +6,7 @@
 typedef struct slaveControllerCDT * slaveControllerADT;
 
 slaveControllerADT createSlaveControllerADT(int qtySlaves);
-char * getAvailableMD5Result(slaveControllerADT slaveContr);
+char * getAvailableMD5Result(slaveControllerADT slaveContr, char * md5);
 int sendFile(slaveControllerADT slaveContr, int index, char * filename);
 int getIdleSlaveIndex(slaveControllerADT slaveContr);
 void freeSlaveControllerADT(slaveControllerADT slaveContr);

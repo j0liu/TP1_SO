@@ -17,11 +17,11 @@ typedef struct masterToSlaveCDT {
   int remainingTasks;
 } masterToSlaveCDT;
 
-int getFdMSWrite(masterToSlaveADT m2s) {
+int getMSWriteFd(masterToSlaveADT m2s) {
   return m2s->fdMSWrite;
 }
 
-int getFdSMRead(masterToSlaveADT m2s) {
+int getSMReadFd(masterToSlaveADT m2s) {
   return m2s->fdSMRead;
 }
 
@@ -89,8 +89,9 @@ size_t sendFileName(masterToSlaveADT m2s, char * filename) {
   return result;
 }
 
-void readMD5Result(masterToSlaveADT m2s, char * md5) {
-
+char * readMD5Result(masterToSlaveADT m2s, char * md5) {
+  read(m2s->fdSMRead, md5, 16);
+  return md5;
 }
 
 int isIdle(masterToSlaveADT m2s) {

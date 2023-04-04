@@ -5,6 +5,7 @@
 int main() {
   char hola[100] = {0};
   scanf("%s", hola);
-  perror(hola);
+  printf("Hola %s", hola);
+//  perror(hola);
   return 0;
 }
