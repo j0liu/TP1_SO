@@ -2,7 +2,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "m2sADT.h"
+#include <string.h>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
@@ -12,6 +14,7 @@ typedef struct masterToSlaveCDT {
   int pid;
   int fdMSWrite;
   int fdSMRead;
+  int remainingTasks;
 } masterToSlaveCDT;
 
 int getFdMSWrite(masterToSlaveADT m2s) {
@@ -39,8 +42,8 @@ static int createSlave(int * pipeM2S, int * pipeS2M) {
       return -1;
   }
   else if (!f) { // slave
-     dup2(STDIN_FILENO, pipeM2S[PIPE_READ]); // TODO: Agregar proteccion?
-     dup2(STDOUT_FILENO, pipeS2M[PIPE_WRITE]);
+     dup2(pipeM2S[PIPE_READ], STDIN_FILENO); // TODO: Agregar proteccion?
+     dup2(pipeS2M[PIPE_WRITE], STDOUT_FILENO);
      close(pipeM2S[PIPE_READ]);
      close(pipeM2S[PIPE_WRITE]);
      close(pipeS2M[PIPE_READ]);
@@ -52,7 +55,6 @@ static int createSlave(int * pipeM2S, int * pipeS2M) {
   close(pipeS2M[PIPE_WRITE]);
   return f;
 }
-
 
 masterToSlaveADT createMasterToSlaveADT() {
   int pipeM2S[2]; // Pipe para enviar nombres a slave
@@ -69,26 +71,30 @@ masterToSlaveADT createMasterToSlaveADT() {
 
   masterToSlaveADT m2s;
   if ((m2s = malloc(sizeof(masterToSlaveCDT))) == NULL) {
-    perror("malloc masterToSlaveADT"); 
+    perror("malloc masterToSlaveADT");
     return NULL;
   }
-  m2s->pid = slavePid; 
+  m2s->pid = slavePid;
   m2s->fdMSWrite = pipeM2S[PIPE_WRITE];
   m2s->fdSMRead = pipeS2M[PIPE_READ];
+  m2s->remainingTasks = 0;
   
   return m2s; 
 }
 
-void sendFileNames(masterToSlaveADT m2s, char * names[]) {
-
+size_t sendFileName(masterToSlaveADT m2s, char * filename) {
+  size_t result = write(m2s->fdMSWrite, filename, strlen(filename));
+  write(m2s->fdMSWrite, "\n", 1);
+  m2s->remainingTasks++;
+  return result;
 }
 
 void readMD5Result(masterToSlaveADT m2s, char * md5) {
 
 }
 
-int isFree(masterToSlaveADT m2s) {
-  return 0;
+int isIdle(masterToSlaveADT m2s) {
+  return m2s->remainingTasks == 0;
 }
 
 void freeMasterToSlave(masterToSlaveADT m2s) {

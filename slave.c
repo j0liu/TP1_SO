@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int main() {
-  char result[256] = {0};
-  scanf("%s", result);
-  printf("Hola %s", result);
+  char hola[100] = {0};
+  scanf("%s", hola);
+  perror(hola);
+  return 0;
 }
