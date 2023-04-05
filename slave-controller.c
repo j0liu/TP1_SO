@@ -60,7 +60,7 @@ int getIdleSlaveIndex(slaveControllerADT slaveContr){
 
 void freeSlaveControllerADT(slaveControllerADT slaveContr) {
   for(int i = 0; i < slaveContr->size; i++) 
-    free(slaveContr->m2sList[i]);
+    freeMasterToSlaveADT(slaveContr->m2sList[i]);
   free(slaveContr->m2sList);
   free(slaveContr);
 }

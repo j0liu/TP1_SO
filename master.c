@@ -25,19 +25,19 @@ int main(int argc, char *argv[]) {
   slaveControllerADT slaveContr = createSlaveControllerADT(QUANTITY_SLAVES);
   if (slaveContr == NULL) return 1;
 
-
   int qtyFiles = argc - 1;
-  printf("Found %d files to process", qtyFiles);
 
   int firstBatchFiles = qtyFiles * FILE_PERCENTAGE / 100.0;
   int fileNumber = 0;
+  printf("Found %d files to process, first batch %d\n", qtyFiles, firstBatchFiles);
 
-  for (; fileNumber < firstBatchFiles; fileNumber++)
+  for (; fileNumber < firstBatchFiles; fileNumber++) {
+    //printf("sending file: %s \n", argv[fileNumber + 1]);
     sendFile(slaveContr, fileNumber % QUANTITY_SLAVES, argv[fileNumber + 1]);
+  }
 
-
-  char md5Result[17] = {0};
   while (fileNumber < qtyFiles) {
+    char md5Result[17] = {0};
     getAvailableMD5Result(slaveContr, md5Result);
     printf("Test: %s\n", md5Result);
     fileNumber++;

@@ -1,13 +1,11 @@
-#include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "m2sADT.h"
 #include <string.h>
+#include "helpers.h"
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
 #define SLAVE "slave"
 
 typedef struct masterToSlaveCDT {
@@ -25,23 +23,14 @@ int getSMReadFd(masterToSlaveADT m2s) {
   return m2s->fdSMRead;
 }
 
-static int createPipe(int * pipeFds) {
-  errno = 0;  
-  if (pipe(pipeFds) < 0) {
-    perror("pipe");
-    return -1;
-  }
-  return 0;
-}
-
 static int createSlave(int * pipeM2S, int * pipeS2M) {
   errno = 0;  
-  int f = fork();
-  if (f == -1) {
+  int slavePid = fork();
+  if (slavePid == -1) {
       perror("fork");
       return -1;
   }
-  else if (!f) { // slave
+  else if (!slavePid) { // slave
      dup2(pipeM2S[PIPE_READ], STDIN_FILENO); // TODO: Agregar proteccion?
      dup2(pipeS2M[PIPE_WRITE], STDOUT_FILENO);
      close(pipeM2S[PIPE_READ]);
@@ -53,7 +42,7 @@ static int createSlave(int * pipeM2S, int * pipeS2M) {
   } // fin de slave
   close(pipeM2S[PIPE_READ]);
   close(pipeS2M[PIPE_WRITE]);
-  return f;
+  return slavePid;
 }
 
 masterToSlaveADT createMasterToSlaveADT() {
@@ -98,6 +87,6 @@ int isIdle(masterToSlaveADT m2s) {
   return m2s->remainingTasks == 0;
 }
 
-void freeMasterToSlave(masterToSlaveADT m2s) {
+void freeMasterToSlaveADT(masterToSlaveADT m2s) {
   free(m2s);
 }
