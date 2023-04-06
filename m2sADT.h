@@ -1,12 +1,13 @@
 #ifndef M2SADT_H
 #define M2SADT_H
 #include <stdlib.h>
+#include <sys/types.h>
 
 typedef struct masterToSlaveCDT * masterToSlaveADT;
 
 masterToSlaveADT createMasterToSlaveADT();
-size_t sendFileName(masterToSlaveADT m2s, char * filename);
-char * readMD5Result(masterToSlaveADT m2s, char * md5);
+ssize_t sendFileName(masterToSlaveADT m2s, char * filename);
+char * readMD5Result(masterToSlaveADT m2s);
 int isIdle(masterToSlaveADT m2s);
 int getMSWriteFd(masterToSlaveADT m2s);
 int getSMReadFd(masterToSlaveADT m2s);

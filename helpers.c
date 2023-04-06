@@ -4,15 +4,21 @@
 #include <unistd.h>
 #include <errno.h>
 
-int fileExists (char * path) {
-    struct stat sb;
-    return !stat(path, &sb);
+int fileExists (const char * path) {
+  struct stat sb;
+  return !stat(path, &sb);
+}
+
+int isDir(const char * path) {
+  struct stat sb;
+  stat(path, &sb);
+  return S_ISDIR(sb.st_mode);
 }
 
 void * safeMalloc(size_t size, const char * msg){
-    void * aux = malloc(size);
-    if (aux == NULL) perror(msg);
-    return aux;
+  void *aux = malloc(size);
+  if (aux == NULL) perror(msg);
+  return aux;
 }
 
 int createPipe(int * pipeFds) {
@@ -22,4 +28,13 @@ int createPipe(int * pipeFds) {
     return -1;
   }
   return 0;
+}
+
+char * getlineFd(int fd) {
+  FILE * file = fdopen(fd, "r");
+  char * line;
+  size_t len;
+  getline(&line, &len, file); 
+  //line[len-1] = '\0';
+  return line;
 }

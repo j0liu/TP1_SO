@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <sys/select.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include "helpers.h"
 #include "m2sADT.h"
 #include "slave-controller.h"
@@ -27,7 +28,7 @@ slaveControllerADT createSlaveControllerADT(int qtySlaves) {
   return slaveContr;
 }
 
-static masterToSlaveADT getReadySlave(slaveControllerADT slaveContr) {
+static int getReadySlaveIndex(slaveControllerADT slaveContr) {
   fd_set fileDescSet;
   FD_ZERO(&fileDescSet);
 
@@ -38,24 +39,27 @@ static masterToSlaveADT getReadySlave(slaveControllerADT slaveContr) {
   if (retval != -1) {
     for (int i = 0; i < slaveContr->size; i++)
       if (FD_ISSET(getSMReadFd(slaveContr->m2sList[i]), &fileDescSet))
-        return slaveContr->m2sList[i];
+        return i;
   } else perror("select");
-  return NULL;
+  return -1;
 }
 
-char * getAvailableMD5Result(slaveControllerADT slaveContr, char * md5) {
-  masterToSlaveADT m2s = getReadySlave(slaveContr);
-  if (m2s == NULL) return NULL;
-  return readMD5Result(m2s, md5);
+char * getAvailableMD5Result(slaveControllerADT slaveContr, int * index) {
+  *index = getReadySlaveIndex(slaveContr);
+  if (*index == -1) return NULL; 
+  return readMD5Result(slaveContr->m2sList[*index]);
 }
 
-int sendFile(slaveControllerADT slaveContr, int index, char * filename) {
+ssize_t sendFile(slaveControllerADT slaveContr, int index, char * filename) {
   if (index < 0 || index >= slaveContr->size) return -1;
   return sendFileName(slaveContr->m2sList[index], filename);
 }
 
-int getIdleSlaveIndex(slaveControllerADT slaveContr){
-    return 0;
+ssize_t sendFileIfIdle(slaveControllerADT slaveContr, int index, char * filename) {
+  if (slaveContr == NULL || index < 0 || index >= slaveContr->size) return -1;
+  if (isIdle(slaveContr->m2sList[index]))
+    return sendFile(slaveContr, index, filename);
+  return -1;
 }
 
 void freeSlaveControllerADT(slaveControllerADT slaveContr) {

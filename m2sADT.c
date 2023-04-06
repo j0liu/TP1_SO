@@ -71,16 +71,16 @@ masterToSlaveADT createMasterToSlaveADT() {
   return m2s; 
 }
 
-size_t sendFileName(masterToSlaveADT m2s, char * filename) {
-  size_t result = write(m2s->fdMSWrite, filename, strlen(filename));
+ssize_t sendFileName(masterToSlaveADT m2s, char * filename) {
+  ssize_t result = write(m2s->fdMSWrite, filename, strlen(filename));
   write(m2s->fdMSWrite, "\n", 1);
   m2s->remainingTasks++;
   return result;
 }
 
-char * readMD5Result(masterToSlaveADT m2s, char * md5) {
-  read(m2s->fdSMRead, md5, 16);
-  return md5;
+char * readMD5Result(masterToSlaveADT m2s) {
+  m2s->remainingTasks--;
+  return getlineFd(m2s->fdSMRead);
 }
 
 int isIdle(masterToSlaveADT m2s) {

@@ -1,6 +1,6 @@
 MASTER_DEPS=m2sADT.c helpers.c slave-controller.c
 SLAVE_DEPS=md5sumADT.c helpers.c
-STD=c99
+STD=gnu11
 
 all: clean master slave view
 
