@@ -11,21 +11,23 @@
 #define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
                                    } while (0)
 
-
 int main(int argc, char *argv[]) {
 
   if (argc < 2) {
     fprintf(stderr, "Expected files as input\n");
     exit(1);
   }
-  char *shmpath = "FLDSMDFR";
+  char *shmpath = "caquita";
 
-  int fd = shm_open(shmpath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+  int fd = shm_open(shmpath, O_CREAT | O_RDWR, 0);
 
   if (fd == -1)
     errExit("shm_open");
 
   int qtyFiles = argc - 1;
+  
+  if (ftruncate(fd, sizeof(shmbuf) + qtyFiles * ROW_LEN) == -1)
+    errExit("ftruncate");
 
   shmbuf *shmp = mmap(NULL, sizeof(shmbuf) + qtyFiles * ROW_LEN,
                              PROT_READ | PROT_WRITE,
@@ -35,21 +37,25 @@ int main(int argc, char *argv[]) {
     errExit("mmap");
 
   /* Copy data into the shared memory object. */
-  char *buffer = (char *) shmp + sizeof(shmbuf);
+  char *entryList = (char *) shmp + sizeof(shmbuf);
 
   shmp->qtyFiles = qtyFiles;
   shmp->entries = 0;
 
-  char *buffAux = buffer;
+  char *entryListPtr = entryList;
   for (; shmp->entries < qtyFiles; shmp->entries++){
     char *filename = argv[shmp->entries + 1];
     int nameLen = strlen(filename);
-    memcpy(buffAux, filename, nameLen);
-    buffAux += nameLen;
-    (*buffAux) = '\n';
-    buffAux++;
+    memcpy(entryListPtr, filename, nameLen);
+    entryListPtr += nameLen;
+    *entryListPtr = '\n';
+    entryListPtr++;
   }
-  printf("%s\n",shmpath);
+  *entryListPtr = EOF;
+  for (int i = 0; &entryList[i] != entryListPtr; i++) {
+    putchar(entryList[i]);
+  }
+
   // ------------------------------
   int xd;
   scanf("%d", &xd);
