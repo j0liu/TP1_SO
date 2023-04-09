@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <semaphore.h>
+
+#define ROW_LEN 3000 // TODO: Poner bien y en otro lado
+
 typedef struct shmbuf {
     sem_t  sem;
     size_t qtyFiles;
