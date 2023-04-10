@@ -30,18 +30,18 @@ int main(int argc, char *argv[]) {
   if (ftruncate(fd, sizeof(shmbuf) + 1000) == -1)
     errExit("ftruncate");
 
-  shmbuf *shmp = mmap(NULL, sizeof(shmbuf) + 1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  shmbuf *shmp = mmap(NULL, sizeof(shmbuf), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (shmp == MAP_FAILED)
     errExit("mmap shmbuf");
 
-  printf("qtyFiles: %d\n", shmp->qtyFiles);
+  if (ftruncate(fd, sizeof(shmbuf) + shmp->qtyFiles * ROW_LEN) == -1)
+    errExit("ftruncate");
 
-  //if (ftruncate(fd, sizeof(shmbuf) + shmp->qtyFiles * ROW_LEN) == -1)
-    //errExit("ftruncate");
-  
-  //off_t offset = 10;
-  //char * entryText = (char *) mmap(NULL, 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
-  //shmp = mmap(NULL, sizeof(shmbuf) + shmp->qtyFiles * ROW_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  int qtyFiles = shmp->qtyFiles;
+ 
+  munmap(shmp, sizeof(shmbuf));
+
+  shmp = mmap(NULL, sizeof(shmbuf) + qtyFiles * ROW_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
   if (shmp == MAP_FAILED)
     errExit("mmap entryText");

@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Expected files as input\n");
     exit(1);
   }
-  char *shmpath = "caquita";
+  char *shmpath = "/shm";
 
   int fd = shm_open(shmpath, O_CREAT | O_RDWR, 0);
 
