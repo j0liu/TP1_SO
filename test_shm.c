@@ -11,18 +11,25 @@
 #define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
                                    } while (0)
 
+#define SHM_NAME "/myshm"
+
 int main(int argc, char *argv[]) {
+  setvbuf(stdout, NULL, _IONBF, 0); 
 
   if (argc < 2) {
     fprintf(stderr, "Expected files as input\n");
     exit(1);
   }
-  char *shmpath = "/shm";
+  char shmpath[SHM_NAME_LENGTH];
+  sprintf(shmpath, "%s%d", SHM_NAME, getpid());
 
   int fd = shm_open(shmpath, O_CREAT | O_RDWR, 0);
 
+
   if (fd == -1)
     errExit("shm_open");
+
+  printf("%s\n", shmpath);
 
   int qtyFiles = argc - 1;
   
@@ -36,37 +43,30 @@ int main(int argc, char *argv[]) {
   if (shmp == MAP_FAILED)
     errExit("mmap");
 
+
+  strcpy(shmp->semName, "/semfiles");
+  sem_t * sem = sem_open(shmp->semName, O_CREAT | O_RDWR, 0, 0);
+
   /* Copy data into the shared memory object. */
   char *entryList = (char *) shmp + sizeof(shmbuf);
 
   shmp->qtyFiles = qtyFiles;
-  shmp->entries = 0;
 
   char *entryListPtr = entryList;
-  for (; shmp->entries < qtyFiles; shmp->entries++){
-    char *filename = argv[shmp->entries + 1];
+  for (int i = 0; i < qtyFiles; i++){
+    char *filename = argv[i + 1];
     int nameLen = strlen(filename);
     memcpy(entryListPtr, filename, nameLen);
     entryListPtr += nameLen;
     *entryListPtr = '\n';
     entryListPtr++;
+    sleep(1);
+
+    if (i == qtyFiles - 1) *entryListPtr = EOF;
+    sem_post(sem);
   }
-  *entryListPtr = EOF;
-  for (int i = 0; &entryList[i] != entryListPtr; i++) {
-    putchar(entryList[i]);
-  }
 
-  // ------------------------------
-  int xd;
-  scanf("%d", &xd);
-  /*
-    if (sem_post(&shmp->sem1) == -1)
-      errExit("sem_post");
-
-    if (sem_wait(&shmp->sem2) == -1)
-      errExit("sem_wait");
-
-  */
+  sem_unlink(shmp->semName);
   shm_unlink(shmpath);
   return 0;
 }
