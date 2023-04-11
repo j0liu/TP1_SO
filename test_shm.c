@@ -24,17 +24,12 @@ int main(int argc, char *argv[]) {
   sprintf(shmpath, "%s%d", SHM_NAME, getpid());
 
   int fd = shm_open(shmpath, O_CREAT | O_RDWR, 0);
+  if (fd == -1) errExit("shm_open");
 
-
-  if (fd == -1)
-    errExit("shm_open");
-
-  printf("%s\n", shmpath);
 
   int qtyFiles = argc - 1;
   
-  if (ftruncate(fd, sizeof(shmbuf) + qtyFiles * ROW_LEN) == -1)
-    errExit("ftruncate");
+  if (ftruncate(fd, sizeof(shmbuf) + qtyFiles * ROW_LEN) == -1) errExit("ftruncate");
 
   shmbuf *shmp = mmap(NULL, sizeof(shmbuf) + qtyFiles * ROW_LEN,
                              PROT_READ | PROT_WRITE,
@@ -45,12 +40,16 @@ int main(int argc, char *argv[]) {
 
 
   strcpy(shmp->semName, "/semfiles");
+  sem_unlink(shmp->semName);
   sem_t * sem = sem_open(shmp->semName, O_CREAT | O_RDWR, 0, 0);
 
   /* Copy data into the shared memory object. */
   char *entryList = (char *) shmp + sizeof(shmbuf);
 
   shmp->qtyFiles = qtyFiles;
+
+  printf("%s\n", shmpath);
+  sleep(2);
 
   char *entryListPtr = entryList;
   for (int i = 0; i < qtyFiles; i++){
