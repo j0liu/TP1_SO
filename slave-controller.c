@@ -10,6 +10,8 @@ typedef struct slaveControllerCDT {
     masterToSlaveADT * m2sList;
     int nfds;
     int size;
+    int filesSent;
+    int filesReceived;
 } slaveControllerCDT;
 
 slaveControllerADT createSlaveControllerADT(int qtySlaves) {
@@ -20,12 +22,31 @@ slaveControllerADT createSlaveControllerADT(int qtySlaves) {
   slaveContr->m2sList = safeMalloc(sizeof(masterToSlaveADT) * qtySlaves, "malloc masterToSlavelist");
   if (slaveContr->m2sList == NULL) return NULL;
   
+  slaveContr->filesReceived = 0;
+  slaveContr->filesSent = 0;
+  
   slaveContr->size = qtySlaves;
   for (int i = 0; i < qtySlaves; i++)
     slaveContr->m2sList[i] = createMasterToSlaveADT();
   slaveContr->nfds = getSMReadFd(slaveContr->m2sList[qtySlaves-1]) + 1;
 
   return slaveContr;
+}
+
+int getFilesSent(slaveControllerADT slaveContr) {
+  return slaveContr->filesSent;
+}
+
+int getFilesReceived(slaveControllerADT slaveContr){
+  return slaveContr->filesReceived;
+}
+
+void incrementFilesSent(slaveControllerADT slaveContr) {
+  slaveContr->filesSent++;
+}
+
+void incrementFilesReceived(slaveControllerADT slaveContr) {
+  slaveContr->filesReceived++;
 }
 
 static int getReadySlaveIndex(slaveControllerADT slaveContr) {
@@ -35,6 +56,7 @@ static int getReadySlaveIndex(slaveControllerADT slaveContr) {
   for (int i = 0; i < slaveContr->size; i++)
     FD_SET(getSMReadFd(slaveContr->m2sList[i]), &fileDescSet); // Agregar fd del pipe S->M a fileDescSet
   
+  fprintf(stderr, "estoy robando y me quede trabado\n");
   int retval = select(slaveContr->nfds, &fileDescSet, NULL, NULL, NULL);
   if (retval != -1) {
     for (int i = 0; i < slaveContr->size; i++)

@@ -33,8 +33,8 @@ int createPipe(int * pipeFds) {
 char * getlineFd(int fd) {
   FILE * file = fdopen(fd, "r");
   char * line = NULL;
-  size_t len = 0;
-  getline(&line, &len, file); 
-  //line[len-1] = '\0';
+  size_t n = 0;
+  size_t len = getline(&line, &n, file); 
+  line[len-1] = '\0';
   return line;
 }

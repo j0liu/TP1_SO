@@ -2,17 +2,21 @@
 #include <stdlib.h>
 #include "helpers.h"
 #include "slave-controller.h"
+#include "resultIOADT.h"
 
 #define PARAM_ERROR 1
 #define FILE_ERROR  2
 #define QUANTITY_SLAVES 5
 #define FILE_PERCENTAGE 20
 
-void skipDir(char * files[], int * filesSent, int * filesReceived);
+void skipDir(char * files[], slaveControllerADT slaveContr);
 void checkParams(int argc, char * argv[]);
+void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr);
+void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr);
 
 
 int main(int argc, char *argv[]) {
+  setvbuf(stdout, NULL, _IONBF, 0); 
   checkParams(argc, argv);
   char ** files = argv + 1;
   slaveControllerADT slaveContr = createSlaveControllerADT(QUANTITY_SLAVES);
@@ -20,31 +24,50 @@ int main(int argc, char *argv[]) {
 
   int qtyFiles = argc - 1;
 
+  distributeInitialLoad(qtyFiles, files, slaveContr);
+  mainLoop(qtyFiles, files, slaveContr);
+  freeSlaveControllerADT(slaveContr);
+  return 0;
+}
+
+void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr) {
   int firstBatchFiles = qtyFiles * FILE_PERCENTAGE / 100.0;
   if (firstBatchFiles < QUANTITY_SLAVES)
     firstBatchFiles = QUANTITY_SLAVES < qtyFiles? QUANTITY_SLAVES : qtyFiles;
-
-  int filesSent = 0;
-  int filesReceived = 0;
-  printf("Found %d files to process, first batch %d\n", qtyFiles, firstBatchFiles);
-  for (; filesSent < firstBatchFiles; filesSent++) {
-    skipDir(files, &filesSent, &filesReceived);
-    sendFile(slaveContr, filesSent % QUANTITY_SLAVES, files[filesSent]);
+  // printf("Found %d files to process, first batch %d\n", qtyFiles, firstBatchFiles);
+  for (; getFilesSent(slaveContr) < firstBatchFiles; incrementFilesSent(slaveContr)) {
+    skipDir(files, slaveContr);
+    sendFile(slaveContr, getFilesSent(slaveContr) % QUANTITY_SLAVES, files[getFilesSent(slaveContr)]);
   }
+}
 
-  while (filesReceived < qtyFiles) {
+void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
+  int pid = getpid();
+  resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
+  if (resultShmIO == NULL) exit(1);
+  printf("%d %d\n", pid, qtyFiles);
+  sleep(2);
+
+  resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
+  if (resultFileIO == NULL) exit(1);
+
+  while (getFilesReceived(slaveContr) < qtyFiles) {
+    fprintf(stderr, "Estoy trabado aiuda\n");
     int slaveIdx;
     char * md5Result = getAvailableMD5Result(slaveContr, &slaveIdx);
     if (md5Result != NULL && slaveIdx != -1) {
-      printf("Test %d: %s", filesReceived + 1, md5Result);
-      filesReceived++;
-      free(md5Result);
-      //mandar resultado al view
+      //fprintf(stderr, "master: %s\n", md5Result);
+      if (writeEntry(resultShmIO, md5Result) == -1)
+        exit(1);
+      if (writeEntry(resultFileIO, md5Result) == -1)
+        exit(1);
 
-      if (filesSent < qtyFiles) {
-        skipDir(files, &filesSent, &filesReceived);
-        if (files[filesSent] != NULL && sendFileIfIdle(slaveContr, slaveIdx, files[filesSent]) != -1)
-          filesSent++;
+      incrementFilesReceived(slaveContr);
+      free(md5Result);
+      if (getFilesSent(slaveContr) < qtyFiles) {
+        skipDir(files, slaveContr);
+        if (files[getFilesSent(slaveContr)] != NULL && sendFileIfIdle(slaveContr, slaveIdx, files[getFilesSent(slaveContr)]) != -1)
+          incrementFilesSent(slaveContr);
       }
     } else {
       perror("getAvailableMD5Result");
@@ -52,14 +75,14 @@ int main(int argc, char *argv[]) {
     } 
   }
 
-  freeSlaveControllerADT(slaveContr);
-  return 0;
+  freeResultIOADT(resultShmIO);
+  freeResultIOADT(resultFileIO);
 }
 
-void skipDir(char * files[], int * filesSent, int * filesReceived){
-  while (files[*filesSent] != NULL && isDir(files[*filesSent])) {
-    (*filesSent)++;
-    (*filesReceived)++;
+void skipDir(char * files[], slaveControllerADT slaveContr){
+  while (files[getFilesSent(slaveContr)] != NULL && isDir(files[getFilesSent(slaveContr)])) {
+    incrementFilesReceived(slaveContr);
+    incrementFilesSent(slaveContr);
   }
 }
 

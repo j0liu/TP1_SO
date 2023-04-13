@@ -15,7 +15,7 @@ int main() {
     int resultLen = strlen(filename) + MD5_LENGTH + 2; // Preguntar si esta bien
     char md5Result[resultLen];
     readMD5Result(md5sum, md5Result, resultLen);
-    printf("%s\n", md5Result);
+    printf("%s %d\n", md5Result, getpid());
   }
   freeMD5sumADT(md5sum);
   return 0;

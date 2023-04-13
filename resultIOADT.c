@@ -36,6 +36,7 @@ static int createIO(resultIOADT resultIO, int pid) {
     }
 
     resultIO->path = safeMalloc(SHM_NAME_LENGTH, msg);
+    if (resultIO->path == NULL) exit(1);
     sprintf(resultIO->path, format, pid);
     
     if (IS_READ(resultIO->flags)) {
@@ -46,7 +47,7 @@ static int createIO(resultIOADT resultIO, int pid) {
     }
 
     if (resultIO->fd == -1) {
-        perror(msg);
+        perror("createIO");
         return -1;
     }
     return 0;
@@ -69,7 +70,10 @@ resultIOADT createResultIOADT(int pid, int flags, int qtyFiles) {
         freeResultIOADT(resultIO);
         return NULL;
     } else {
-        createIO(resultIO, pid);
+        if (createIO(resultIO, pid) == -1) {
+            freeResultIOADT(resultIO);
+            return NULL;
+        }   
     }
 
     if (ftruncate(resultIO->fd, qtyFiles * ROW_LEN) == -1) 
