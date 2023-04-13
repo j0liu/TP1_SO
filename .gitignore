@@ -2,5 +2,6 @@ md5
 slave
 view
 files
+test_shm
 .vscode
 .bash_history

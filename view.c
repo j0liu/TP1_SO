@@ -13,21 +13,25 @@
 
 #define BUF_SIZE 1024   
 
-
 int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0); 
   
-  char *shmpath;
-  char input[SHM_NAME_LENGTH]; 
-  if (argc > 2) {
+  char shmpath[SHM_NAME_LENGTH]; 
+  char sempath[SEM_NAME_LENGTH]; 
+  int pid = 0;
+  int qtyFiles = 0;
+  if (argc != 3 && argc != 1) {
     fprintf(stderr, "Usage: %s /shm-path\n", argv[0]);
     exit(EXIT_FAILURE);
-  } else if (argc == 2) {
-    shmpath = argv[1];
+  } else if (argc == 3) {
+    pid = atoi(argv[1]);
+    qtyFiles = atoi(argv[2]);
   } else {
-    scanf("%s", input);
-    shmpath = input;
+    scanf("%d %d", &pid, &qtyFiles);
   }
+  printf("recibio %d %d\n", pid, qtyFiles);
+  sprintf(shmpath, "/%s_%d", SHM_NAME, pid);
+  sprintf(sempath, "/%s_%d", SEM_NAME, pid);
   
   int fd = shm_open(shmpath, O_RDWR, 0);
   
@@ -37,26 +41,12 @@ int main(int argc, char *argv[]) {
   //if (ftruncate(fd, sizeof(shmbuf)) == -1)
     //errExit("ftruncate");
 
-  shmbuf *shmp = mmap(NULL, sizeof(shmbuf) + 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  
-  if (shmp == MAP_FAILED)
-    errExit("mmap shmbuf");
+  char * entryText = (char *) mmap(NULL, qtyFiles * ROW_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-  if (ftruncate(fd, sizeof(shmbuf) + shmp->qtyFiles * ROW_LEN) == -1)
-    errExit("ftruncate");
-
-  int qtyFiles = shmp->qtyFiles;
-
-  munmap(shmp, sizeof(shmbuf));
-
-  shmp = mmap(NULL, sizeof(shmbuf) + qtyFiles * ROW_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-  if (shmp == MAP_FAILED)
+  if (entryText == MAP_FAILED)
     errExit("mmap entryText");
 
-  sem_t * sem = sem_open(shmp->semName, O_RDWR);
-
-  char * entryText = (char *) shmp + sizeof(shmbuf);
+  sem_t * sem = sem_open(sempath, O_RDWR);
   
   char * startPos = entryText;
   char * endPos;
@@ -64,6 +54,7 @@ int main(int argc, char *argv[]) {
   printf("Vista B)\n");
   do {
     sem_wait(sem);
+    if (*startPos == EOF) break;
     endPos = strchr(startPos, '\n');
     write(STDOUT_FILENO, startPos, endPos - startPos + 1);
     startPos = endPos + 1;
