@@ -3,12 +3,9 @@
 #include "helpers.h"
 #include "resultIOADT.h"
 
-#define SHM_NAME_LENGTH         16
-#define SEM_NAME_LENGTH         16
-#define ROW_LEN                 3000 // TODO: Poner bien 
-#define SHM_PREFIX              "shm"
-#define FILE_PREFIX             "file"
-#define SEM_PREFIX              "sem"
+#define SHM_FORMAT              "/shm_%d"
+#define FILE_FORMAT             "./output/file_%d"
+#define SEM_FORMAT              "/sem_%d"
 #define panic(resultIO, msg)    do { \
                                     perror(msg);\
                                     freeResultIOADT(resultIO);\
@@ -29,31 +26,31 @@ typedef struct resultIOCDT {
 
 
 static int createIO(resultIOADT resultIO, int pid) {
-    char * msg, * prefix;
+    char * msg, * format;
     if (IS_SHM(resultIO->flags)){
         msg = "malloc sharedMemoryIO";
-        prefix = SHM_PREFIX;
+        format = SHM_FORMAT;
     } else {
         msg = "malloc fileIO";
-        prefix = FILE_PREFIX;
+        format = FILE_FORMAT;
     }
 
     resultIO->path = safeMalloc(SHM_NAME_LENGTH, msg);
-    sprintf(resultIO->path, "/%s_%d", prefix, pid);
+    sprintf(resultIO->path, format, pid);
     
-    resultIO->fd = IS_SHM(resultIO->flags) ? shm_open(resultIO->path, O_CREAT | O_RDWR, 0) :
-                                             open(resultIO->path, O_CREAT | O_RDWR, 0);
+    if (IS_READ(resultIO->flags)) {
+        resultIO->fd = shm_open(resultIO->path, O_RDWR, 0);
+    } else {
+        resultIO->fd = IS_SHM(resultIO->flags) ? shm_open(resultIO->path, O_CREAT | O_RDWR, 0) : 
+                                                 open(resultIO->path, O_CREAT | O_RDWR, 0);
+    }
+
     if (resultIO->fd == -1) {
         perror(msg);
         return -1;
     }
     return 0;
 }
-
-static void openIO(resultIOADT resultIO){
-
-}
-
 
 resultIOADT createResultIOADT(int pid, int flags, int qtyFiles) {
     resultIOADT resultIO;
@@ -67,14 +64,12 @@ resultIOADT createResultIOADT(int pid, int flags, int qtyFiles) {
     resultIO->entryText = NULL;
     resultIO->entryTextPtr = NULL;
     
-    if (IS_WRITE(flags)) createIO(resultIO, pid);
-    else {
-        if (IS_SHM(flags)) openIO(resultIO);
-        else {
-            fprintf(stderr, "Unsupported file operation");
-            freeResultIOADT(resultIO);
-            return NULL;
-        }
+    if (!IS_WRITE(flags) && !IS_SHM(flags)) {
+        fprintf(stderr, "Unsupported file operation");
+        freeResultIOADT(resultIO);
+        return NULL;
+    } else {
+        createIO(resultIO, pid);
     }
 
     if (ftruncate(resultIO->fd, qtyFiles * ROW_LEN) == -1) 
@@ -88,7 +83,7 @@ resultIOADT createResultIOADT(int pid, int flags, int qtyFiles) {
     if (SEM_ENABLED(flags)) {
         resultIO->semPath = safeMalloc(SHM_NAME_LENGTH, "malloc semPath");
         if (resultIO->semPath == NULL) return NULL;
-        sprintf(resultIO->semPath, "/%s_%d", SEM_PREFIX, pid);
+        sprintf(resultIO->semPath, SEM_FORMAT, pid);
         resultIO->sem = IS_WRITE(flags)? sem_open(resultIO->semPath, O_CREAT | O_RDWR, 0, 0) : 
                                          sem_open(resultIO->semPath, O_RDWR);
         if (resultIO->sem == SEM_FAILED)
@@ -99,7 +94,6 @@ resultIOADT createResultIOADT(int pid, int flags, int qtyFiles) {
 }
 
 void freeResultIOADT(resultIOADT resultIO) {
-    
     if (IS_WRITE(resultIO->flags)) {
         if (SEM_ENABLED(resultIO->flags) && resultIO->sem != NULL){
             if (resultIO->entryTextPtr != NULL)
@@ -109,7 +103,7 @@ void freeResultIOADT(resultIOADT resultIO) {
         }
         if(IS_SHM(resultIO->flags) && resultIO->entryText != NULL)
             shm_unlink(resultIO->path);
-    }
+    } 
 
     if (resultIO->entryTextPtr != NULL)
         munmap(resultIO->entryText, resultIO->qtyFiles * ROW_LEN);
@@ -130,6 +124,13 @@ int writeEntry(resultIOADT resultIO, const char * entry) {
     return 0; // TODO: Handle errors
 }
 
-int readEntry(resultIOADT resultIO, char *result) {
-    return 0;
+int readEntry(resultIOADT resultIO, char *buffer) {
+    char * endPos;
+    sem_wait(resultIO->sem);
+    if (*resultIO->entryTextPtr == EOF) return -1;
+    endPos = strchr(resultIO->entryTextPtr, '\n');
+    int entryLen = endPos - resultIO->entryTextPtr + 1;
+    strncpy(buffer, resultIO->entryTextPtr, entryLen);
+    resultIO->entryTextPtr = endPos + 1;
+    return entryLen;
 }

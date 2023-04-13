@@ -16,8 +16,12 @@
 #define IO_SEM          4
 #define IO_SEM_DIS      0
 
+#define SHM_NAME_LENGTH         32 
+#define SEM_NAME_LENGTH         32
+#define ROW_LEN                 3000 // TODO: Poner bien 
+
 #define IS_WRITE(x) ((x) & IO_WRITE)
-#define IS_READ(x) (!CAN_WRITE(x))
+#define IS_READ(x) (!IS_WRITE(x))
 #define IS_SHM(x) ((x) & IO_SHM)
 #define IS_FILE(x) (!IS_SHM(x))
 #define SEM_ENABLED(x) ((x) & IO_SEM)
