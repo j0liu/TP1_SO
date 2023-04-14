@@ -45,7 +45,7 @@ void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
   resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
   if (resultShmIO == NULL) exit(1);
   printf("%d %d\n", pid, qtyFiles);
-  sleep(10);
+  sleep(2);
 
   resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
   if (resultFileIO == NULL) exit(1);

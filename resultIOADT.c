@@ -107,6 +107,10 @@ void freeResultIOADT(resultIOADT resultIO) {
         }
         if(IS_SHM(resultIO->flags) && resultIO->entryText != NULL)
             shm_unlink(resultIO->path);
+        else {
+            if (ftruncate(resultIO->fd, resultIO->entryTextPtr - resultIO->entryText) == -1)
+                perror("ftruncate freeResultIOADT");
+        }
     } 
 
     if (resultIO->entryTextPtr != NULL)

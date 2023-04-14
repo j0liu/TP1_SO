@@ -15,9 +15,9 @@ typedef struct masterToSlaveCDT {
   int remainingTasks;
 } masterToSlaveCDT;
 
-int getMSWriteFd(masterToSlaveADT m2s) {
+/*int getMSWriteFd(masterToSlaveADT m2s) {
   return m2s->fdMSWrite;
-}
+}*/
 
 int getSMReadFd(masterToSlaveADT m2s) {
   return m2s->fdSMRead;
