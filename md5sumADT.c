@@ -1,10 +1,12 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "md5sumADT.h"
 #include "helpers.h"
-#define MD5SUM "/usr/bin/md5sum"
+#define MD5SUM "md5sum"
 
 typedef struct md5sumCDT {
   int fdMd5Read;
@@ -35,7 +37,8 @@ int sendFileName(md5sumADT md5sum, char * filename) {
     close(pipe[PIPE_READ]);
     close(pipe[PIPE_WRITE]);
     char * paramList[] = {MD5SUM, filename, NULL};
-    execve(MD5SUM, paramList, 0); // TODO: Agregar proteccion?
+    execvp(MD5SUM, paramList);
+    //execve(MD5SUM, paramList, 0); // TODO: Agregar proteccion?
   } // fin md5sum 
   close(pipe[PIPE_WRITE]);
   md5sum->fdMd5Read = pipe[PIPE_READ];

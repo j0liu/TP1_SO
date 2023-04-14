@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <semaphore.h>
 #include <fcntl.h>
 #include "helpers.h"
@@ -135,8 +137,9 @@ int writeEntry(resultIOADT resultIO, const char * entry) {
 int readEntry(resultIOADT resultIO, char *buffer) {
     char * endPos;
     sem_wait(resultIO->sem);
-    if (*resultIO->entryTextPtr == EOF) return -1;
+    if ((int) *resultIO->entryTextPtr == EOF) return -1;
     endPos = strchr(resultIO->entryTextPtr, '\n');
+    if (endPos == NULL) return -1;
     int entryLen = endPos - resultIO->entryTextPtr + 1;
     strncpy(buffer, resultIO->entryTextPtr, entryLen);
     resultIO->entryTextPtr = endPos + 1;

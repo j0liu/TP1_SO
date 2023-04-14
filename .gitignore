@@ -6,3 +6,8 @@ output
 .vscode
 .bash_history
 .config
+report.*
+PVS-Studio.log
+a.sh
+valgrind-*
+strace_out
