@@ -34,8 +34,10 @@ int main(int argc, char *argv[]) {
   int entryLen = 0;
   do {
     entryLen = readEntry(resultIO, buffer);
-    buffer[entryLen-1]  = '\0';
-    puts(buffer);
+    if (entryLen > 0)  {
+      buffer[entryLen-1]  = '\0';
+      puts(buffer);
+    }
   } while (entryLen > 0);
   freeResultIOADT(resultIO);
   return 0;
