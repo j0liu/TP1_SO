@@ -33,11 +33,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   char buffer[ROW_LEN]; 
   int entryLen;
-  printf("Vista B)\n");
   do {
     entryLen = readEntry(resultIO, buffer);
     write(STDOUT_FILENO, buffer, entryLen);
   } while (entryLen > 0);
-  printf("Fin B(\n");
   return 0;
 }

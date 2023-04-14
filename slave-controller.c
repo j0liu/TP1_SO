@@ -56,7 +56,6 @@ static int getReadySlaveIndex(slaveControllerADT slaveContr) {
   for (int i = 0; i < slaveContr->size; i++)
     FD_SET(getSMReadFd(slaveContr->m2sList[i]), &fileDescSet); // Agregar fd del pipe S->M a fileDescSet
   
-  fprintf(stderr, "estoy robando y me quede trabado\n");
   int retval = select(slaveContr->nfds, &fileDescSet, NULL, NULL, NULL);
   if (retval != -1) {
     for (int i = 0; i < slaveContr->size; i++)

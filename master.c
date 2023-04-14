@@ -24,7 +24,6 @@ int main(int argc, char *argv[]) {
 
   int qtyFiles = argc - 1;
 
-  distributeInitialLoad(qtyFiles, files, slaveContr);
   mainLoop(qtyFiles, files, slaveContr);
   freeSlaveControllerADT(slaveContr);
   return 0;
@@ -46,13 +45,13 @@ void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
   resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
   if (resultShmIO == NULL) exit(1);
   printf("%d %d\n", pid, qtyFiles);
-  sleep(2);
+  sleep(10);
 
   resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
   if (resultFileIO == NULL) exit(1);
 
+  distributeInitialLoad(qtyFiles, files, slaveContr);
   while (getFilesReceived(slaveContr) < qtyFiles) {
-    fprintf(stderr, "Estoy trabado aiuda\n");
     int slaveIdx;
     char * md5Result = getAvailableMD5Result(slaveContr, &slaveIdx);
     if (md5Result != NULL && slaveIdx != -1) {
