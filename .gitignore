@@ -3,7 +3,6 @@ slave
 view
 files
 output
-test_shm
 .vscode
 .bash_history
 .config

@@ -16,6 +16,6 @@ view:
 	gcc -Wall view.c $(VIEW_DEPS) -o view -std=$(STD) $(FLAGS)
 
 clean:
-	rm -f md5 slave view test_shm
+	rm -f md5 slave view
 
 .PHONY: all clean
