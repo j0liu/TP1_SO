@@ -10,9 +10,6 @@
 #include <string.h>
 #include "resultIOADT.h"
 
-#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
-                                   } while (0)
-
 #define BUF_SIZE 1024   
 
 int main(int argc, char *argv[]) {
