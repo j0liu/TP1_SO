@@ -80,7 +80,12 @@ ssize_t sendFileName(masterToSlaveADT m2s, char * filename) {
 
 char * readMD5Result(masterToSlaveADT m2s) {
   m2s->remainingTasks--;
-  return getlineFd(m2s->fdSMRead);
+  int totalLen;
+  read(m2s->fdSMRead, &totalLen, sizeof(int));
+  char * buff = safeMalloc(totalLen, "malloc readMD5Result");
+  if (buff == NULL) return NULL;
+  read(m2s->fdSMRead, buff, totalLen);
+  return buff;
 }
 
 int isIdle(masterToSlaveADT m2s) {

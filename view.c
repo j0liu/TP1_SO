@@ -31,11 +31,12 @@ int main(int argc, char *argv[]) {
   resultIOADT resultIO = createResultIOADT(pid, IO_READ | IO_SHM | IO_SEM, qtyFiles);
   if (resultIO == NULL)
     exit(1);
-  char buffer[ROW_LEN]; 
+  char buffer[ROW_LEN];
   int entryLen;
   do {
     entryLen = readEntry(resultIO, buffer);
     write(STDOUT_FILENO, buffer, entryLen);
   } while (entryLen > 0);
+  freeResultIOADT(resultIO);
   return 0;
 }

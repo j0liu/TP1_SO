@@ -25,7 +25,6 @@ int main(int argc, char *argv[]) {
   int qtyFiles = argc - 1;
 
   mainLoop(qtyFiles, files, slaveContr);
-  freeSlaveControllerADT(slaveContr);
   return 0;
 }
 
@@ -55,7 +54,6 @@ void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
     int slaveIdx;
     char * md5Result = getAvailableMD5Result(slaveContr, &slaveIdx);
     if (md5Result != NULL && slaveIdx != -1) {
-      //fprintf(stderr, "master: %s\n", md5Result);
       if (writeEntry(resultShmIO, md5Result) == -1)
         exit(1);
       if (writeEntry(resultFileIO, md5Result) == -1)
@@ -73,9 +71,9 @@ void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
       break;
     } 
   }
-
   freeResultIOADT(resultShmIO);
   freeResultIOADT(resultFileIO);
+  freeSlaveControllerADT(slaveContr);
 }
 
 void skipDir(char * files[], slaveControllerADT slaveContr){
