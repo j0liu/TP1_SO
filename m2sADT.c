@@ -1,5 +1,14 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ *  Fecha: 17 de abril de 2023
+ *  Autores: Liu, Jonathan Daniel
+ *           Vilamowski, Abril
+ *           Wischñevsky, David
+ *  Version: 1.0
+ */
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,7 +41,7 @@ static int createSlave(int * pipeM2S, int * pipeS2M) {
       perror("fork");
       return -1;
   }
-  else if (!slavePid) { // slave
+  else if (!slavePid) {
      dup2(pipeM2S[PIPE_READ], STDIN_FILENO); // TODO: Agregar proteccion?
      dup2(pipeS2M[PIPE_WRITE], STDOUT_FILENO);
      close(pipeM2S[PIPE_READ]);
@@ -41,7 +50,7 @@ static int createSlave(int * pipeM2S, int * pipeS2M) {
      close(pipeS2M[PIPE_WRITE]);
      char * const paramList[] = {SLAVE, NULL};
      execve(SLAVE, paramList, 0); // TODO: Agregar proteccion?
-  } // fin de slave
+  } 
   close(pipeM2S[PIPE_READ]);
   close(pipeS2M[PIPE_WRITE]);
   return slavePid;

@@ -1,5 +1,14 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ *  Fecha: 17 de abril de 2023
+ *  Autores: Liu, Jonathan Daniel
+ *           Vilamowski, Abril
+ *           Wischñevsky, David
+ *  Version: 1.0
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>

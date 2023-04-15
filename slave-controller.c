@@ -1,5 +1,14 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ *  Fecha: 17 de abril de 2023
+ *  Autores: Liu, Jonathan Daniel
+ *           Vilamowski, Abril
+ *           Wischñevsky, David
+ *  Version: 1.0
+ */
+
 #include <stdlib.h>
 #include <sys/select.h>
 #include <stdio.h>
@@ -9,11 +18,11 @@
 #include "slave-controller.h"
 
 typedef struct slaveControllerCDT {
-    masterToSlaveADT * m2sList;
-    int nfds;
-    int size;
-    int filesSent;
-    int filesReceived;
+    masterToSlaveADT * m2sList;   // Lista de m2sADT 
+    int nfds;                     // File descriptor maximo + 1
+    int size;                     // Cantidad de esclavos
+    int filesSent;                // Cantidad de archivos enviados
+    int filesReceived;            // Cantidad de archivos recibidos
 } slaveControllerCDT;
 
 slaveControllerADT createSlaveControllerADT(int qtySlaves) {

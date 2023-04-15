@@ -1,5 +1,14 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ *  Fecha: 17 de abril de 2023
+ *  Autores: Liu, Jonathan Daniel
+ *           Vilamowski, Abril
+ *           Wischñevsky, David
+ *  Version: 1.0
+ */
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,7 +18,7 @@
 #define MD5SUM "md5sum"
 
 typedef struct md5sumCDT {
-  int fdMd5Read;
+  int fdMd5Read; // File descriptor del pipe de lectura de md5sum
 } md5sumCDT;
 
 md5sumADT createMD5sumADT(){
@@ -31,15 +40,13 @@ int sendFileName(md5sumADT md5sum, char * filename) {
   if (pid == -1) {
     perror("fork");
     return -1;
-  }
-  else if (!pid) { // md5sum
+  } else if (!pid) { 
     dup2(pipe[PIPE_WRITE], STDOUT_FILENO);
     close(pipe[PIPE_READ]);
     close(pipe[PIPE_WRITE]);
     char * paramList[] = {MD5SUM, filename, NULL};
-    execvp(MD5SUM, paramList);
-    //execve(MD5SUM, paramList, 0); // TODO: Agregar proteccion?
-  } // fin md5sum 
+    execvp(MD5SUM, paramList); // Ejecutar md5sum sin usar path absoluto 
+  }
   close(pipe[PIPE_WRITE]);
   md5sum->fdMd5Read = pipe[PIPE_READ];
   return pid;

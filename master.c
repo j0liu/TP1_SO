@@ -1,26 +1,65 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ *  Fecha: 17 de abril de 2023
+ *  Autores: Liu, Jonathan Daniel
+ *           Vilamowski, Abril
+ *           Wischñevsky, David
+ *  Version: 1.0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "helpers.h"
 #include "slave-controller.h"
 #include "resultIOADT.h"
 
-#define PARAM_ERROR 1
-#define FILE_ERROR  2
-#define QUANTITY_SLAVES 5
-#define FILE_PERCENTAGE 20
+#define PARAM_ERROR     1   // Codigo de error para cantidad de parametros incorrecta
+#define FILE_ERROR      2   // Codigo de error para archivo invalido
+#define QUANTITY_SLAVES 5   // Cantidad de procesos esclavos
+#define FILE_PERCENTAGE 20  // Porcentaje de archivos que se envian al principio 
 
-void skipDir(char * files[], slaveControllerADT slaveContr);
-void checkParams(int argc, char * argv[]);
-void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr);
-void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr);
+
+/**
+ * @brief Loop principal del programa. Se encarga de enviar los archivos a los esclavos, y de recibir y procesar los resultados. 
+ * 
+ * @param qtyFiles Cantidad de archivos
+ * @param files Vector de archivos 
+ * @param slaveContr Controlador de procesos esclavos
+ */
+static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr);
+
+/**
+ * @brief Chequea si la cantidad de paramentros es correcta. En caso de ser menor a 2 aborta el programa.
+ * 
+ * @param argc Cantidad de parametros
+ * @param argv En el primer argumento, el nombre del ejecutable. El resto, los archivos que recibe.
+ */
+
+static void checkParams(int argc, char * argv[]);
+/**
+ * @brief Distribuye la carga de trabajo inicial como porcentaje de la cantidad de archivos, y se las asigna a los esclavos
+ * 
+ * @param qtyFiles Cantidad de archivos 
+ * @param files Vector de archivos
+ * @param slaveContr Controlador de procesos esclavos
+ */
+static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr);
+
+/**
+ * @brief  Saltea los directorios de la lista de archivos 
+ * 
+ * @param files Vector de archivos
+ * @param slaveContr Controlador de procesos esclavos
+ */
+static void skipDir(char * files[], slaveControllerADT slaveContr);
 
 
 int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0); 
   checkParams(argc, argv);
-  char ** files = argv + 1;
+  char ** files = argv + 1; // Saltear el nombre del ejecutable
   slaveControllerADT slaveContr = createSlaveControllerADT(QUANTITY_SLAVES);
   if (slaveContr == NULL) return 1;
 
@@ -30,18 +69,17 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr) {
+static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr) {
   int firstBatchFiles = qtyFiles * FILE_PERCENTAGE / 100.0;
   if (firstBatchFiles < QUANTITY_SLAVES)
     firstBatchFiles = QUANTITY_SLAVES < qtyFiles? QUANTITY_SLAVES : qtyFiles;
-  // printf("Found %d files to process, first batch %d\n", qtyFiles, firstBatchFiles);
   for (; getFilesSent(slaveContr) < firstBatchFiles; incrementFilesSent(slaveContr)) {
     skipDir(files, slaveContr);
     sendFile(slaveContr, getFilesSent(slaveContr) % QUANTITY_SLAVES, files[getFilesSent(slaveContr)]);
   }
 }
 
-void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
+static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
   int pid = getpid();
   resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
   if (resultShmIO == NULL) exit(1);
@@ -78,15 +116,14 @@ void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
   freeSlaveControllerADT(slaveContr);
 }
 
-void skipDir(char * files[], slaveControllerADT slaveContr){
+static void skipDir(char * files[], slaveControllerADT slaveContr){
   while (files[getFilesSent(slaveContr)] != NULL && isDir(files[getFilesSent(slaveContr)])) {
     incrementFilesReceived(slaveContr);
     incrementFilesSent(slaveContr);
   }
 }
 
-
-void checkParams(int argc, char * argv[]){
+static void checkParams(int argc, char * argv[]){
   if (argc < 2) {
     fprintf(stderr, "Expected files as input\n");
     exit(PARAM_ERROR);
