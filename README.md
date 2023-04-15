@@ -6,16 +6,18 @@
 * [Acerca de](#acerca-de)
 
 ## Información general
-Este proyecto permite obtener el md5 de un conjunto de archivos, guardando el nombre del archivo, el md5 y qué proceso se encargó de él, en un archivo de salida y una memoria compartida.
-<br>Además, permite leer dicha memoria con un programa vista. 
+Este proyecto permite obtener el md5 de un conjunto de archivos, guardando el nombre del archivo, el md5 y qué proceso se encargó de él, en un archivo de salida y una memoria compartida.  
+Además, permite leer dicha memoria con un programa vista. 
 
 
 ## Instrucciones de compilación y ejecución
 Una vez descargado el proyecto, se debe correr el comando make all para que se creen los archivos ejecutables.
 Luego, para poder ver el programa en funcionamiento se puede proceder de dos maneras diferentes:
-Crear un pipe que permite conectar al proceso aplicación con el proceso vista con   
 
 *Caso 1*: 
+
+Crear un pipe que permite conectar al proceso aplicación con el proceso vista con:
+
 
 ```
 $ ./md5 [archivos] | ./view
