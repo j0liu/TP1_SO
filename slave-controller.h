@@ -16,8 +16,8 @@ typedef struct slaveControllerCDT * slaveControllerADT;
 
 /**
  * @brief  Crea un nuevo slaveControllerADT
- * @param  qtySlaves Cantidad de esclavos 
- * @return slaveControllerADT 
+ * @param  qtySlaves Cantidad de slaves 
+ * @return slaveControllerADT, o NULL si hubo un error
  */
 slaveControllerADT createSlaveControllerADT(int qtySlaves);
 
@@ -52,16 +52,16 @@ void incrementFilesSent(slaveControllerADT slaveContr);
 void incrementFilesReceived(slaveControllerADT slaveContr);
 
 /**
- * @brief Retorna un el ultimo md5 procesado por un esclavo
+ * @brief Retorna un el ultimo md5 procesado por un slave
  * @note El md5 debe ser liberado por el usuario
  * @param slaveContr ADT del slaveController
- * @param index Indice del esclavo al que se le pide el md5 
+ * @param index Indice del slave al que se le pide el md5 
  * @return char* md5 obtenido
  */
 char * getAvailableMD5Result(slaveControllerADT slaveContr, int * index);
 
 /**
- * @brief Envia un archivo a un esclavo
+ * @brief Envia un archivo a un slave
  * 
  * @param slaveContr ADT del slaveController
  * @param index Index del eclavo
@@ -71,20 +71,21 @@ char * getAvailableMD5Result(slaveControllerADT slaveContr, int * index);
 ssize_t sendFile(slaveControllerADT slaveContr, int index, char * filename);
 
 /**
- * @brief En caso que un esclavo no tenga mas archivos por procesar, le envia uno
+ * @brief En caso que un slave no tenga mas archivos por procesar, le envia uno
  * 
  * @param slaveContr ADT del slaveController
  * @param index Index del eclavo
  * @param filename Archivo para procesar
- * @return ssize_t Cantidad de bytes del nombre del archivo enviado, -1 si fallo
+ * @return ssize_t Cantidad de bytes del nombre del archivo enviado, -1 si fallo o si el slave no puede aceptar archivos 
  */
 ssize_t sendFileIfIdle(slaveControllerADT slaveContr, int index, char * filename);
 
 /**
- * @brief Obtiene el index de un esclavo que no tiene mas archivos por procesar
+ * @brief Obtiene el index de un slave que no tiene mas archivos por procesar
  * 
+ * @note llama a la funcion select, por lo que se bloquea hasta que haya una lectura posible
  * @param slaveContr ADT del slaveController
- * @return int Index del esclavo
+ * @return int Index del slave, o -1 si hubo un error
  */
 int getIdleSlaveIndex(slaveControllerADT slaveContr);
 

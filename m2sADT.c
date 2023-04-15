@@ -17,7 +17,16 @@
 #include <string.h>
 #include "helpers.h"
 
-#define SLAVE "slave"
+#define SLAVE "slave" // Nombre del archivo slave
+
+/**
+ * @brief  Crea un proceso slave y lo vincula con master mediante los pipes recibidos
+ *  
+ * @param  pipeM2S Array de 2 enteros de los file descriptors correspondientes al pipe de master a slave
+ * @param  pipeS2M Array de 2 enteros de los file descriptors correspondientes al pipe de slave a master
+ * @return Pid del slave o -1 si hubo un error 
+ */
+static int createSlave(int pipeM2S[], int pipeS2M[]);
 
 typedef struct masterToSlaveCDT {
   int pid;
@@ -26,15 +35,12 @@ typedef struct masterToSlaveCDT {
   int remainingTasks;
 } masterToSlaveCDT;
 
-/*int getMSWriteFd(masterToSlaveADT m2s) {
-  return m2s->fdMSWrite;
-}*/
 
 int getSMReadFd(masterToSlaveADT m2s) {
   return m2s->fdSMRead;
 }
 
-static int createSlave(int * pipeM2S, int * pipeS2M) {
+static int createSlave(int pipeM2S[], int pipeS2M[]) {
   errno = 0;  
   int slavePid = fork();
   if (slavePid == -1) {

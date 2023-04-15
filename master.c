@@ -17,16 +17,16 @@
 
 #define PARAM_ERROR     1   // Codigo de error para cantidad de parametros incorrecta
 #define FILE_ERROR      2   // Codigo de error para archivo invalido
-#define QUANTITY_SLAVES 5   // Cantidad de procesos esclavos
-#define FILE_PERCENTAGE 20  // Porcentaje de archivos que se envian al principio 
+#define QUANTITY_SLAVES 5   // Cantidad de procesos slave
+#define FILE_PERCENTAGE 20  // Porcentaje de archivos que se envian en la carga inicial
 
 
 /**
- * @brief Loop principal del programa. Se encarga de enviar los archivos a los esclavos, y de recibir y procesar los resultados. 
+ * @brief Loop principal del programa. Se encarga de enviar los archivos a los slaves, y de recibir y procesar los resultados. 
  * 
  * @param qtyFiles Cantidad de archivos
  * @param files Vector de archivos 
- * @param slaveContr Controlador de procesos esclavos
+ * @param slaveContr Controlador de procesos slaves
  */
 static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr);
 
@@ -39,11 +39,12 @@ static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr)
 
 static void checkParams(int argc, char * argv[]);
 /**
- * @brief Distribuye la carga de trabajo inicial como porcentaje de la cantidad de archivos, y se las asigna a los esclavos
+ * @brief Distribuye la carga de trabajo inicial como porcentaje de la cantidad de archivos, y se las asigna a los slaves
  * 
- * @param qtyFiles Cantidad de archivos 
+ * @note utiliza la constante FILE_PERCENTAGE para calcular el porcentaje de la carga inicial
+ * @param qtyFiles Cantidad total de archivos
  * @param files Vector de archivos
- * @param slaveContr Controlador de procesos esclavos
+ * @param slaveContr Controlador de procesos slaves
  */
 static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr);
 
@@ -51,7 +52,7 @@ static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerAD
  * @brief  Saltea los directorios de la lista de archivos 
  * 
  * @param files Vector de archivos
- * @param slaveContr Controlador de procesos esclavos
+ * @param slaveContr Controlador de procesos slaves
  */
 static void skipDir(char * files[], slaveControllerADT slaveContr);
 

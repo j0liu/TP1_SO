@@ -17,10 +17,18 @@
 #include "m2sADT.h"
 #include "slave-controller.h"
 
+/**
+ * @brief Devuelve el menor indice de un slave listo para leer 
+ * 
+ * @param slaveContr ADT del slaveController 
+ * @return int Indice del slave listo para leer o -1 si hay un error
+ */
+static int getReadySlaveIndex(slaveControllerADT slaveContr);
+
 typedef struct slaveControllerCDT {
     masterToSlaveADT * m2sList;   // Lista de m2sADT 
     int nfds;                     // File descriptor maximo + 1
-    int size;                     // Cantidad de esclavos
+    int size;                     // Cantidad de slaves
     int filesSent;                // Cantidad de archivos enviados
     int filesReceived;            // Cantidad de archivos recibidos
 } slaveControllerCDT;

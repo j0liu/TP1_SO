@@ -37,7 +37,7 @@ int isDir(const char *filename);
  * 
  * @param size Cantidad de bytes que se quiere reservar de memoria en heap
  * @param msg Mensaje en caso de error
- * @return void* Puntero a la memoria reservada
+ * @return void* Puntero a la memoria reservada, o NULL en caso de error
  */
 void * safeMalloc(size_t size, const char * msg);
 
@@ -47,7 +47,7 @@ void * safeMalloc(size_t size, const char * msg);
  * @param pipeFds Array de 2 enteros donde se guardaran los file descriptors 
  * @return int 0 si se creo correctamente, -1 si hubo un error
  */
-int createPipe(int * pipeFds);
+int createPipe(int pipeFds[]);
 
 
 #endif // HELPERS_H

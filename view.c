@@ -19,8 +19,6 @@
 #include <string.h>
 #include "resultIOADT.h"
 
-#define BUF_SIZE 1024   
-
 int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0); 
   

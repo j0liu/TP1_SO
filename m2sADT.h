@@ -17,16 +17,16 @@ typedef struct masterToSlaveCDT * masterToSlaveADT;
 /**
  * @brief Crea un nuevo masterToSlaveADT
  *
- * @return masterToSlaveADT 
+ * @return masterToSlaveADT, o NULL si hubo un error
  */
 masterToSlaveADT createMasterToSlaveADT();
 
 /**
- * @brief 
+ * @brief manda un nombre de archivo al pipe del slave para procesar
  * 
  * @param m2s ADT del masterToSlave
  * @param filename Nombre del archivo a enviar
- * @return ssize_t Cantidad de bytes del archivo que se envio
+ * @return ssize_t Cantidad de bytes del archivo que se envio, o -1 si hubo un error
  */
 ssize_t sendFileName(masterToSlaveADT m2s, char * filename);
 
@@ -34,15 +34,15 @@ ssize_t sendFileName(masterToSlaveADT m2s, char * filename);
  * @brief Lee un md5 del pipe
  * 
  * @param m2s ADT del masterToSlave
- * @return char* md5
+ * @return char* md5, o NULL si hubo un error
  */
 char * readMD5Result(masterToSlaveADT m2s);
 
 /**
- * @brief Devuelve 1 si el slave esta ocupado, 0 si esta libre
+ * @brief Devuelve 1 si el slave esta libre, 0 si tiene tareas restantes
  * 
  * @param m2s ADT del masterToSlave
- * @return int 1 si esta ocupado, 0 si esta libre
+ * @return int 1 si el slave esta libre, 0 si tiene tareas restantes
  */
 int isIdle(masterToSlaveADT m2s);
 

@@ -15,7 +15,7 @@ typedef struct md5sumCDT * md5sumADT;
 /**
  * @brief Crea un nuevo md5sumADT
  * 
- * @return md5sumADT 
+ * @return md5sumADT, o NULL si hubo un error
  */
 md5sumADT createMD5sumADT();
 

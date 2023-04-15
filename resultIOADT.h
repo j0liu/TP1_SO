@@ -39,7 +39,7 @@ typedef struct resultIOCDT * resultIOADT;
  * @param pid Id del proceso master
  * @param flags Flags de IO
  * @param qtyFiles Cantidad de archivos a procesar
- * @return resultIOADT
+ * @return resultIOADT, o NULL si hubo un error
  */
 resultIOADT createResultIOADT(int pid, int flags, int qtyFiles);
 
@@ -53,6 +53,7 @@ void freeResultIOADT(resultIOADT resultIO);
 /**
  * @brief Escribe una entrada (puede ser tanto en la shared memory como en un archivo)
  * 
+ * @note si el flag IO_SEM esta encendido, se llama a sem_post despues de realizar la escritura
  * @param resultIO ADT del resultIO
  * @param entry Entrada compuesta por el md5, el nombre del archivo y pid
  * @return int Cantidad de caracteres que se lograron escribir
@@ -60,8 +61,9 @@ void freeResultIOADT(resultIOADT resultIO);
 int writeEntry(resultIOADT resultIO, const char *entry);
 
 /**
- * @brief Leer una entrada (puede ser tanto de la shared memory como de un archivo)
+ * @brief Lee una entrada (puede ser tanto de la shared memory como de un archivo)
  * 
+ * @note si el flag IO_SEM esta encendido, se llama a sem_wait antes de realizar la lectura
  * @param resultIO ADT del resultIO
  * @param entry Entrada compuesta por el md5, el nombre del archivo y pid
  * @return int Cantidad de caracteres que se lograron leer

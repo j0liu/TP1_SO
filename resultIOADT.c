@@ -23,7 +23,15 @@
                                     return NULL;\
                                 } while (0)
 
+/**
+ * @brief Abre el recurso del sistema donde se quiere trabajar (shared memory o file)
+ * 
+ * @param resultIO ADT de resultIO
+ * @param pid ID del proceso master
+ * @return int -1 si falla, 0 si no
+ */
 
+static int createIO(resultIOADT resultIO, int pid);
 typedef struct resultIOCDT {
     int flags;
     int fd;
@@ -145,7 +153,8 @@ int writeEntry(resultIOADT resultIO, const char * entry) {
 
 int readEntry(resultIOADT resultIO, char *buffer) {
     char * endPos;
-    sem_wait(resultIO->sem);
+    if(SEM_ENABLED(resultIO->flags))
+        sem_wait(resultIO->sem);
     if ((int) *resultIO->entryTextPtr == EOF) return -1;
     endPos = strchr(resultIO->entryTextPtr, '\n');
     if (endPos == NULL) return -1;

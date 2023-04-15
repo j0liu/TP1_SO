@@ -32,7 +32,7 @@ void * safeMalloc(size_t size, const char * msg){
   return aux;
 }
 
-int createPipe(int * pipeFds) {
+int createPipe(int pipeFds[]) {
   errno = 0;  
   if (pipe(pipeFds) < 0) {
     perror("pipe");
