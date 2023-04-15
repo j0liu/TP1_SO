@@ -20,10 +20,10 @@ int fileExists (const char * path) {
   return !stat(path, &sb);
 }
 
-int isDir(const char * path) {
+int isFile(const char * path) {
   struct stat sb;
   stat(path, &sb);
-  return S_ISDIR(sb.st_mode);
+  return S_ISREG(sb.st_mode);
 }
 
 void * safeMalloc(size_t size, const char * msg){

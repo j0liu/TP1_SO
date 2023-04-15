@@ -120,7 +120,7 @@ static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr)
 }
 
 static void skipDir(char * files[], slaveControllerADT slaveContr){
-  while (files[getFilesSent(slaveContr)] != NULL && isDir(files[getFilesSent(slaveContr)])) {
+  while (files[getFilesSent(slaveContr)] != NULL && !isFile(files[getFilesSent(slaveContr)])) {
     incrementFilesReceived(slaveContr);
     incrementFilesSent(slaveContr);
   }

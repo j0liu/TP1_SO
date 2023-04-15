@@ -25,12 +25,12 @@
 int fileExists(const char *filename);
 
 /**
- * @brief Determina si un path corresponde a un directorio o no
+ * @brief Determina si un path corresponde a un archivo o no
  * 
  * @param filename Path
- * @return int int 1 si es un directorio, 0 sino
+ * @return int int 1 si es un archivo, 0 sino
  */
-int isDir(const char *filename);
+int isFile(const char *filename);
 
 /**
  * @brief Crea un espacio de memoria en el heap, mostrando un mensaje de error en caso de que no se pueda 
