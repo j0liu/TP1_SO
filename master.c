@@ -15,10 +15,10 @@
 #include "slave-controller.h"
 #include "resultIOADT.h"
 
-#define PARAM_ERROR     1   // Codigo de error para cantidad de parametros incorrecta
-#define FILE_ERROR      2   // Codigo de error para archivo invalido
-#define QUANTITY_SLAVES 5   // Cantidad de procesos slave
-#define FILE_PERCENTAGE 20  // Porcentaje de archivos que se envian en la carga inicial
+#define PARAM_ERROR     1    // Codigo de error para cantidad de parametros incorrecta
+#define FILE_ERROR      2    // Codigo de error para archivo invalido
+#define QUANTITY_SLAVES 10   // Cantidad de procesos slave
+#define FILE_PERCENTAGE 20   // Porcentaje de archivos que se envian en la carga inicial
 
 
 /**
@@ -74,9 +74,11 @@ static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerAD
   int firstBatchFiles = qtyFiles * FILE_PERCENTAGE / 100.0;
   if (firstBatchFiles < QUANTITY_SLAVES)
     firstBatchFiles = QUANTITY_SLAVES < qtyFiles? QUANTITY_SLAVES : qtyFiles;
+
   for (; getFilesSent(slaveContr) < firstBatchFiles; incrementFilesSent(slaveContr)) {
     skipDir(files, slaveContr);
-    sendFile(slaveContr, getFilesSent(slaveContr) % QUANTITY_SLAVES, files[getFilesSent(slaveContr)]);
+    if(files[getFilesSent(slaveContr)] != NULL)
+      sendFile(slaveContr, getFilesSent(slaveContr) % QUANTITY_SLAVES, files[getFilesSent(slaveContr)]);
   }
 }
 
