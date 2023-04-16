@@ -78,7 +78,7 @@ masterToSlaveADT createMasterToSlaveADT() {
   if ((slavePid = createSlave(pipeM2S, pipeS2M)) == -1)
     return NULL;
 
-  masterToSlaveADT m2s = safeMalloc(sizeof(masterToSlaveADT), ERROR_MSG_MALLOC_M2SADT);
+  masterToSlaveADT m2s = safeMalloc(sizeof(masterToSlaveCDT), ERROR_MSG_MALLOC_M2SADT);
   if (m2s == NULL) return NULL;
 
   m2s->pid = slavePid;

@@ -27,7 +27,7 @@ typedef struct md5sumCDT {
 } md5sumCDT;
 
 md5sumADT createMD5sumADT(){
-  md5sumADT md5sum = safeMalloc(sizeof(md5sumADT), ERROR_MSG_MALLOC_ADT);
+  md5sumADT md5sum = safeMalloc(sizeof(md5sumCDT), ERROR_MSG_MALLOC_ADT);
   if (md5sum == NULL) return NULL;
   md5sum->fdMd5Read = EMPTY_FD;
   return md5sum;
