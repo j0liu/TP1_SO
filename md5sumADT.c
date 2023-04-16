@@ -52,7 +52,7 @@ int sendFileName(md5sumADT md5sum, char * filename) {
     char * paramList[] = {MD5SUM, filename, NULL};
     execvp(MD5SUM, paramList);
     perror(MD5SUM);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   close(pipe[PIPE_WRITE]);
   md5sum->fdMd5Read = pipe[PIPE_READ];
@@ -68,6 +68,7 @@ ssize_t readMD5Result(md5sumADT md5sum, char * md5, int resultLen){
     return -1;
   }
   md5[result] = '\0';
+  close(md5sum->fdMd5Read);
   md5sum->fdMd5Read = -1;
   return result;
 }

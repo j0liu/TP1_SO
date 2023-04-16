@@ -15,20 +15,24 @@
 #include "slave-controller.h"
 #include "resultIOADT.h"
 
-#define PARAM_ERROR     1    // Codigo de error para cantidad de parametros incorrecta
-#define FILE_ERROR      2    // Codigo de error para archivo invalido
-#define QUANTITY_SLAVES 10   // Cantidad de procesos slave
-#define FILE_PERCENTAGE 20   // Porcentaje de archivos que se envian en la carga inicial
-
+#define START_SLEEP_TIME          2    // Cantidad de segundos que la aplicacion espera antes de comenzar a enviar archivos
+#define QUANTITY_SLAVES           10   // Cantidad de procesos slave
+#define FILE_PERCENTAGE           20   // Porcentaje de archivos que se envian en la carga inicial
+#define ERROR_MSG_FILE_EXISTS     "file_exists"
+#define ERROR_MSG_EXPECTED_FILES  "Expected files as input\n"
+#define ERROR_MSG_INVALID_FILE    "Invalid file %s\n"
+#define ERROR_MSG_GET_AVAILABLE_MD5_RESULT "getAvailableMD5Result"
+#define ERROR_MSG_COULD_NOT_GET_MD5_RESULT "Error, could not get available MD5 result"
 
 /**
  * @brief Loop principal del programa. Se encarga de enviar los archivos a los slaves, y de recibir y procesar los resultados. 
  * 
  * @param qtyFiles Cantidad de archivos
  * @param files Vector de archivos 
- * @param slaveContr Controlador de procesos slaves
+ * @param slaveContr ADT del slaveController
+ * @return int 0 si no hubo errores, 1 en caso contrario
  */
-static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr);
+static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO);
 
 /**
  * @brief Chequea si la cantidad de paramentros es correcta. En caso de ser menor a 2 aborta el programa.
@@ -44,7 +48,7 @@ static void checkParams(int argc, char * argv[]);
  * @note utiliza la constante FILE_PERCENTAGE para calcular el porcentaje de la carga inicial
  * @param qtyFiles Cantidad total de archivos
  * @param files Vector de archivos
- * @param slaveContr Controlador de procesos slaves
+ * @param slaveContr ADT del slaveController
  */
 static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr);
 
@@ -52,22 +56,54 @@ static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerAD
  * @brief  Saltea los directorios de la lista de archivos 
  * 
  * @param files Vector de archivos
- * @param slaveContr Controlador de procesos slaves
+ * @param slaveContr ADT del slaveController
  */
 static void skipDir(char * files[], slaveControllerADT slaveContr);
 
+/**
+ * @brief Libera todos los ADT 
+ * 
+ * @param slaveContr ADT del slaveController
+ * @param resultShmIO ADT para manejo de shared memory 
+ * @param resultFileIO ADT para manejo del archivo resultado
+
+ */
+static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO);
 
 int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0); 
   checkParams(argc, argv);
   char ** files = argv + 1; // Saltear el nombre del ejecutable
   slaveControllerADT slaveContr = createSlaveControllerADT(QUANTITY_SLAVES);
-  if (slaveContr == NULL) return 1;
+  if (slaveContr == NULL) return EXIT_FAILURE;
 
   int qtyFiles = argc - 1;
+  int pid = getpid();
+  resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
+  if (resultShmIO == NULL) {
+    freeSlaveControllerADT(slaveContr);
+    exit(EXIT_FAILURE);
+  } 
+  printf("%d %d\n", pid, qtyFiles);
+  sleep(START_SLEEP_TIME);
 
-  mainLoop(qtyFiles, files, slaveContr);
-  return 0;
+  resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
+  if (resultFileIO == NULL) {
+    freeAll(slaveContr, resultShmIO, NULL);
+    exit(EXIT_FAILURE);
+  } 
+
+  distributeInitialLoad(qtyFiles, files, slaveContr);
+  int result = mainLoop(qtyFiles, files, slaveContr, resultShmIO, resultFileIO);
+
+  freeAll(slaveContr, resultShmIO, resultFileIO);
+  return result;
+}
+
+static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO) {
+  freeResultIOADT(resultShmIO);
+  freeResultIOADT(resultFileIO);
+  freeSlaveControllerADT(slaveContr);
 }
 
 static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr) {
@@ -82,25 +118,13 @@ static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerAD
   }
 }
 
-static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr){
-  int pid = getpid();
-  resultIOADT resultShmIO = createResultIOADT(pid, IO_WRITE | IO_SHM | IO_SEM, qtyFiles);
-  if (resultShmIO == NULL) exit(1);
-  printf("%d %d\n", pid, qtyFiles);
-  sleep(2);
-
-  resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
-  if (resultFileIO == NULL) exit(1);
-
-  distributeInitialLoad(qtyFiles, files, slaveContr);
+static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO) {
   while (getFilesReceived(slaveContr) < qtyFiles) {
     int slaveIdx;
     char * md5Result = getAvailableMD5Result(slaveContr, &slaveIdx);
     if (md5Result != NULL && slaveIdx != -1) {
-      if (writeEntry(resultShmIO, md5Result) == -1)
-        exit(1);
-      if (writeEntry(resultFileIO, md5Result) == -1)
-        exit(1);
+      if (writeEntry(resultShmIO, md5Result) == -1) return EXIT_FAILURE; 
+      if (writeEntry(resultFileIO, md5Result) == -1) return EXIT_FAILURE; 
 
       incrementFilesReceived(slaveContr);
       free(md5Result);
@@ -110,13 +134,12 @@ static void mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr)
           incrementFilesSent(slaveContr);
       }
     } else {
-      perror("getAvailableMD5Result");
-      break;
+      perror(ERROR_MSG_GET_AVAILABLE_MD5_RESULT);
+      fprintf(stderr, ERROR_MSG_COULD_NOT_GET_MD5_RESULT);
+      return EXIT_FAILURE;
     } 
   }
-  freeResultIOADT(resultShmIO);
-  freeResultIOADT(resultFileIO);
-  freeSlaveControllerADT(slaveContr);
+  return EXIT_SUCCESS;
 }
 
 static void skipDir(char * files[], slaveControllerADT slaveContr){
@@ -128,15 +151,15 @@ static void skipDir(char * files[], slaveControllerADT slaveContr){
 
 static void checkParams(int argc, char * argv[]){
   if (argc < 2) {
-    fprintf(stderr, "Expected files as input\n");
-    exit(PARAM_ERROR);
+    fprintf(stderr, ERROR_MSG_EXPECTED_FILES);
+    exit(EXIT_FAILURE);
   }
   
   for (int i = 1; i < argc; i++){
     if (!fileExists(argv[i])) {
-      perror("file_exists");
-      fprintf(stderr, "Invalid file %s\n", argv[i]);
-      exit(FILE_ERROR);
+      perror(ERROR_MSG_FILE_EXISTS);
+      fprintf(stderr, ERROR_MSG_INVALID_FILE, argv[i]);
+      exit(EXIT_FAILURE);
     }
   }
 }

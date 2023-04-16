@@ -23,7 +23,6 @@
 
 #define SHM_NAME_LENGTH         32          // Longitud maxima del nombre de la shared memory 
 #define SEM_NAME_LENGTH         32          // Longitud maxima del nombre del semaforo
-#define ROW_LEN                 3000        // TODO: Poner bien 
 
 #define IS_WRITE(x) ((x) & IO_WRITE)        // Verifica si el flag es de escritura
 #define IS_READ(x) (!IS_WRITE(x))           // Verifica si el flag es de lectura
@@ -58,7 +57,7 @@ void freeResultIOADT(resultIOADT resultIO);
  * @param entry Entrada compuesta por el md5, el nombre del archivo y pid
  * @return int Cantidad de caracteres que se lograron escribir
  */
-int writeEntry(resultIOADT resultIO, const char *entry);
+size_t writeEntry(resultIOADT resultIO, const char *entry);
 
 /**
  * @brief Lee una entrada (puede ser tanto de la shared memory como de un archivo)

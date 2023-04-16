@@ -12,9 +12,10 @@
 #include <stdlib.h>
 #define PIPE_READ           0
 #define PIPE_WRITE          1
-#define MAX_PATH_LENGTH     4096  // 4KB es el maximo que puede tener un path en linux
-#define MD5_LENGTH          32    // Longitud del md5
-#define MAX_PID_DIGITS      5     // Cantidad maxima de digitos del pid
+#define MAX_PATH_LENGTH     4096                                                  // 4KB es el maximo que puede tener un path en linux
+#define MD5_LENGTH          32                                                    // Longitud del md5
+#define MAX_PID_DIGITS      5                                                     // Cantidad maxima de digitos del pid
+#define ROW_LEN             (MAX_PATH_LENGTH + MD5_LENGTH + MAX_PID_DIGITS + 4)   // Longitud maxima de una linea de un archivo
 
 /**
  * @brief Determina si un archivo existe o no

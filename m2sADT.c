@@ -54,14 +54,13 @@ static int createSlave(int pipeM2S[], int pipeS2M[]) {
   else if (!slavePid) {
       dup2(pipeM2S[PIPE_READ], STDIN_FILENO);
       dup2(pipeS2M[PIPE_WRITE], STDOUT_FILENO);
-      close(pipeM2S[PIPE_READ]);
-      close(pipeM2S[PIPE_WRITE]);
-      close(pipeS2M[PIPE_READ]);
-      close(pipeS2M[PIPE_WRITE]);
-      char *const paramList[] = {SLAVE, NULL};
-      execve(SLAVE, paramList, 0);
-      perror(SLAVE);
-      exit(1);
+      for (int fd = STDERR_FILENO + 1; fd <= pipeS2M[PIPE_WRITE]; fd++)
+        close(fd);
+
+    char *const paramList[] = {SLAVE, NULL};
+    execve(SLAVE, paramList, 0);
+    perror(SLAVE);
+    exit(EXIT_FAILURE);
   } 
   close(pipeM2S[PIPE_READ]);
   close(pipeS2M[PIPE_WRITE]);
@@ -117,5 +116,8 @@ int isIdle(masterToSlaveADT m2s) {
 }
 
 void freeMasterToSlaveADT(masterToSlaveADT m2s) {
+  if (m2s == NULL) return;
+  close(m2s->fdMSWrite);
+  close(m2s->fdSMRead);
   free(m2s);
 }
