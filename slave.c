@@ -17,16 +17,18 @@
 #include "md5sumADT.h"
 
 int main() {
-  
   setvbuf(stdout, NULL, _IONBF, 0);
   char filename[MAX_PATH_LENGTH] = {0};
 
   md5sumADT md5sum = createMD5sumADT();
+  if (md5sum == NULL) return 1;
+
   while (scanf("%s", filename) != EOF) {
-    sendFileName(md5sum, filename);
-    int resultLen = strlen(filename) + MD5_LENGTH + 2; 
+    if (sendFileName(md5sum, filename) == -1) break;
+    int resultLen = strlen(filename) + MD5_LENGTH + 3;  // 3 = 2 espacios + 1 \0 
     char md5Result[resultLen];
-    readMD5Result(md5sum, md5Result, resultLen);
+    ssize_t readLen = readMD5Result(md5sum, md5Result, resultLen - 1); // -1 para no contar el \0
+    if (readLen <= 1) break;
     
     int pid = getpid();
     int finalResultLen = resultLen + MAX_PID_DIGITS;

@@ -21,7 +21,7 @@ md5sumADT createMD5sumADT();
 
 /**
  * @brief Crea un proceso md5sum y lo conecta con el pipe
- * 
+ * @note Limpia errno 
  * @param md5sum ADT del md5
  * @param filename Nombre del archivo a calcular el md5
  * @return int -1 si hubo un error, pid del proceso generado con fork si no 
@@ -30,7 +30,7 @@ int sendFileName(md5sumADT md5sum, char * filename);
 
 /**
  * @brief Lee un md5 del archivo proveniente del pipe 
- * 
+ * @note Limpia errno 
  * @param md5sum ADT del md5
  * @param md5 Buffer donde se guardara el md5 junto con el nombre del archivo
  * @param resultLen Longitud del md5 + nombre del archivo

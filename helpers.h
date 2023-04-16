@@ -26,15 +26,15 @@ int fileExists(const char *filename);
 
 /**
  * @brief Determina si un path corresponde a un archivo o no
- * 
+ * @note Limpia errno 
  * @param filename Path
- * @return int int 1 si es un archivo, 0 sino
+ * @return int int 1 si es un archivo, 0 si no, -1 si hubo un error
  */
 int isFile(const char *filename);
 
 /**
  * @brief Crea un espacio de memoria en el heap, mostrando un mensaje de error en caso de que no se pueda 
- * 
+ * @note Limpia errno 
  * @param size Cantidad de bytes que se quiere reservar de memoria en heap
  * @param msg Mensaje en caso de error
  * @return void* Puntero a la memoria reservada, o NULL en caso de error
@@ -43,7 +43,7 @@ void * safeMalloc(size_t size, const char * msg);
 
 /**
  * @brief Arma un pipe y devuelve los file descriptors de sus extremos
- * 
+ * @note Limpia errno 
  * @param pipeFds Array de 2 enteros donde se guardaran los file descriptors 
  * @return int 0 si se creo correctamente, -1 si hubo un error
  */

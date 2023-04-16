@@ -25,7 +25,7 @@ slaveControllerADT createSlaveControllerADT(int qtySlaves);
  * @brief Retorna la cantidad de archivos enviados 
  * 
  * @param slaveContr ADT del slaveController
- * @return int cantidad de archivos enviados
+ * @return int cantidad de archivos enviados, -1 si ocurrio un error
  */
 int getFilesSent(slaveControllerADT slaveContr);
 
@@ -33,20 +33,20 @@ int getFilesSent(slaveControllerADT slaveContr);
  * @brief Retorna la cantidad de archivos recibidos
  * 
  * @param slaveContr ADT del slaveController
- * @return int cantidad de archivos recibidos
+ * @return int cantidad de archivos recibidos, -1 si ocurrio un error
  */
 int getFilesReceived(slaveControllerADT slaveContr);
 
 /**
  * @brief Incrementa en uno la cantidad de archivos enviados 
- * 
+ * @note Si el ADT es NULL no hace nada
  * @param slaveContr ADT del slaveController
  */
 void incrementFilesSent(slaveControllerADT slaveContr);
 
 /**
  * @brief Incrementa un uno la cantidad de archivos recibidos
- * 
+ * @note Si el ADT es NULL no hace nada
  * @param slaveContr ADT del slaveController
  */
 void incrementFilesReceived(slaveControllerADT slaveContr);

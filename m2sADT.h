@@ -42,7 +42,7 @@ char * readMD5Result(masterToSlaveADT m2s);
  * @brief Devuelve 1 si el slave esta libre, 0 si tiene tareas restantes
  * 
  * @param m2s ADT del masterToSlave
- * @return int 1 si el slave esta libre, 0 si tiene tareas restantes
+ * @return int 1 si el slave esta libre, 0 si tiene tareas restantes, -1 si hubo un error
  */
 int isIdle(masterToSlaveADT m2s);
 
@@ -50,7 +50,7 @@ int isIdle(masterToSlaveADT m2s);
  * @brief Devuelve el file descriptor de lectura del pipe
  * 
  * @param m2s ADT del masterToSlave
- * @return int file descriptor
+ * @return int file descriptor, -1 si hubo un error
  */
 int getSMReadFd(masterToSlaveADT m2s);
 
