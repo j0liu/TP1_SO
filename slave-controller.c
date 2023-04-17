@@ -39,12 +39,16 @@ typedef struct slaveControllerCDT {
 } slaveControllerCDT;
 
 slaveControllerADT createSlaveControllerADT(int qtySlaves) {
+  if (qtySlaves <= 0) return NULL;
   slaveControllerADT slaveContr;
   slaveContr = safeMalloc(sizeof(slaveControllerCDT), ERROR_MSG_MALLOC_ADT);
   if (slaveContr == NULL) return NULL;
 
   slaveContr->m2sList = safeMalloc(sizeof(masterToSlaveADT) * qtySlaves, ERROR_MSG_MALLOC_LIST);
-  if (slaveContr->m2sList == NULL) return NULL;
+  if (slaveContr->m2sList == NULL) {
+    freeSlaveControllerADT(slaveContr);
+    return NULL;
+  }
   
   slaveContr->filesReceived = 0;
   slaveContr->filesSent = 0;
@@ -120,7 +124,7 @@ ssize_t sendFileIfIdle(slaveControllerADT slaveContr, int index, char * filename
 
 void freeSlaveControllerADT(slaveControllerADT slaveContr) {
   if (slaveContr == NULL) return;
-  for(int i = 0; i < slaveContr->size; i++) 
+  for(int i = 0; i < slaveContr->size && slaveContr->m2sList != NULL; i++) 
     freeMasterToSlaveADT(slaveContr->m2sList[i]);
   free(slaveContr->m2sList);
   free(slaveContr);
