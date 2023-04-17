@@ -57,10 +57,10 @@ static int createSlave(int pipeM2S[], int pipeS2M[]) {
       for (int fd = STDERR_FILENO + 1; fd <= pipeS2M[PIPE_WRITE]; fd++)
         close(fd);
 
-    char *const paramList[] = {SLAVE, NULL};
-    execve(SLAVE, paramList, 0);
-    perror(SLAVE);
-    exit(EXIT_FAILURE);
+      char *const paramList[] = {SLAVE, NULL};
+      execve(SLAVE, paramList, 0);
+      perror(SLAVE);
+      exit(EXIT_FAILURE);
   } 
   close(pipeM2S[PIPE_READ]);
   close(pipeS2M[PIPE_WRITE]);

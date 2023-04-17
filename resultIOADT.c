@@ -20,10 +20,10 @@
                                     freeResultIOADT(resultIO);\
                                     return NULL;\
                                 } while (0)
-#define RW_ALL 0666                                                     // Permisos de lectura y escritura para todos
-#define SHM_FORMAT              "/shm_%d"
-#define FILE_FORMAT             "./output/file_%d"
-#define SEM_FORMAT              "/sem_%d"
+#define RW_ALL                                  0666 // Permisos de lectura y escritura para todos
+#define SHM_FORMAT                              "/shm_%d"
+#define FILE_FORMAT                             "./output/file_%d"
+#define SEM_FORMAT                              "/sem_%d"
 #define ERROR_MSG_MALLOC_SHARED_MEMORY_IO       "malloc sharedMemoryIO"
 #define ERROR_MSG_MALLOC_FILE_IO                "malloc fileIO"
 #define ERROR_MSG_OPEN_IO                       "openIO"
