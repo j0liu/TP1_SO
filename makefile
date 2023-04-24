@@ -4,7 +4,7 @@ VIEW_DEPS=resultIOADT.c helpers.c
 STD=gnu11
 FLAGS=-g -pedantic -lrt -pthread
 
-all: clean master slave view output
+all: clean master slave view view2 output
 
 output:
 	mkdir -p output
@@ -18,7 +18,10 @@ slave:
 view:
 	gcc -Wall view.c $(VIEW_DEPS) -o view -std=$(STD) $(FLAGS)
 
+view2:
+	gcc -Wall view2.c $(VIEW_DEPS) -o view2 -std=$(STD) $(FLAGS)
+
 clean:
-	rm -f md5 slave view
+	rm -f md5 slave view view2
 
 .PHONY: all clean output

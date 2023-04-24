@@ -14,6 +14,9 @@
 #include "helpers.h"
 #include "slave-controller.h"
 #include "resultIOADT.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define START_SLEEP_TIME          2    // Cantidad de segundos que la aplicacion espera antes de comenzar a enviar archivos
 #define QUANTITY_SLAVES           10   // Cantidad de procesos slave
@@ -32,7 +35,7 @@
  * @param slaveContr ADT del slaveController
  * @return int 0 si no hubo errores, 1 en caso contrario
  */
-static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO);
+static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO, int fdNamedPipe);
 
 /**
  * @brief Chequea si la cantidad de paramentros es correcta. En caso de ser menor a 2 aborta el programa.
@@ -68,7 +71,9 @@ static void skipDir(char * files[], slaveControllerADT slaveContr);
  * @param resultFileIO ADT para manejo del archivo resultado
 
  */
-static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO);
+static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO, int fdNamedPipe);
+
+int initNamedPipe(int pid);
 
 int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0); 
@@ -89,21 +94,24 @@ int main(int argc, char *argv[]) {
 
   resultIOADT resultFileIO = createResultIOADT(pid, IO_WRITE | IO_FILE | IO_SEM_DIS, qtyFiles);
   if (resultFileIO == NULL) {
-    freeAll(slaveContr, resultShmIO, NULL);
+    freeAll(slaveContr, resultShmIO, NULL, 0);
     exit(EXIT_FAILURE);
   } 
 
   distributeInitialLoad(qtyFiles, files, slaveContr);
-  int result = mainLoop(qtyFiles, files, slaveContr, resultShmIO, resultFileIO);
+  int fdNamedPipe = initNamedPipe(pid);
+  
+  int result = mainLoop(qtyFiles, files, slaveContr, resultShmIO, resultFileIO, fdNamedPipe);
 
-  freeAll(slaveContr, resultShmIO, resultFileIO);
+  freeAll(slaveContr, resultShmIO, resultFileIO, fdNamedPipe);
   return result;
 }
 
-static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO) {
+static void freeAll(slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO, int fdNamedPipe) {
   freeResultIOADT(resultShmIO);
   freeResultIOADT(resultFileIO);
   freeSlaveControllerADT(slaveContr);
+  close(fdNamedPipe);
 }
 
 static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerADT slaveContr) {
@@ -118,13 +126,16 @@ static void distributeInitialLoad(int qtyFiles, char ** files, slaveControllerAD
   }
 }
 
-static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO) {
+static int mainLoop(int qtyFiles, char ** files, slaveControllerADT slaveContr, resultIOADT resultShmIO, resultIOADT resultFileIO, int fdNamedPipe) {
   while (getFilesReceived(slaveContr) < qtyFiles) {
     int slaveIdx;
     char * md5Result = getAvailableMD5Result(slaveContr, &slaveIdx);
     if (md5Result != NULL && slaveIdx != -1) {
       if (writeEntry(resultShmIO, md5Result) == -1) return EXIT_FAILURE; 
       if (writeEntry(resultFileIO, md5Result) == -1) return EXIT_FAILURE; 
+      
+      write(fdNamedPipe, md5Result, 1000);
+      
 
       incrementFilesReceived(slaveContr);
       free(md5Result);
@@ -162,4 +173,12 @@ static void checkParams(int argc, char * argv[]){
       exit(EXIT_FAILURE);
     }
   }
+}
+
+int initNamedPipe(int pid) {
+  char pipeName[1000];
+  sprintf(pipeName, "/pipe%d", pid);
+  mkfifo(pipeName, 0666);
+  int fd = open(pipeName, O_WRONLY);
+  return fd;
 }
